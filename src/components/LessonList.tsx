@@ -17,8 +17,9 @@ export const LessonList: React.FC<LessonListProps> = ({ selectedCourse, onSelect
             fetch(`${baseUrl}/courses/${selectedCourse}/lessons/`)
                 .then((response) => response.json())
                 .then((data: string[]) => {
-                    const sortedLessons = sortLessons(data);
-                    setLessons(sortedLessons);
+                    // Filter out lessons starting with '.'
+                    const filteredLessons = data.filter((lesson) => !lesson.startsWith("."));
+                    const sortedLessons = sortLessons(filteredLessons);                    setLessons(sortedLessons);
                 })
                 .catch((error) => console.error("Error fetching lessons:", error));
         }
@@ -39,8 +40,10 @@ export const LessonList: React.FC<LessonListProps> = ({ selectedCourse, onSelect
                                 onSelectLesson(lesson);
                             }}
                             className={`w-full text-left px-4 py-2 rounded-md transition-all ${
-                                selectedLesson === lesson ? "bg-green-800" : "bg-green-700"
-                            } text-white hover:bg-green-600`}
+                                selectedLesson === lesson
+                                    ? "bg-blue-700 text-white"
+                                    : "bg-gray-300 text-black"
+                            } hover:bg-blue-500 hover:text-white`}
                         >
                             {lesson.replace(/_/g, " ")}
                         </button>

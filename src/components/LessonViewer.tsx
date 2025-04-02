@@ -19,7 +19,6 @@ export const LessonViewer: React.FC<LessonViewerProps> = ({ selectedCourse, sele
     let nextLesson: string | null = currentIndex < lessons.length - 1 ? lessons[currentIndex + 1] : null;
 
     useEffect(() => {
-        console.log(lessons);
         currentIndex = lessons.indexOf(selectedLesson);
         prevLesson = currentIndex > 0 ? lessons[currentIndex - 1] : null;
         nextLesson = currentIndex < lessons.length - 1 ? lessons[currentIndex + 1] : null;

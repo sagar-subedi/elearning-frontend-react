@@ -19,7 +19,9 @@ export const CoursePage: React.FC = () => {
         fetch(`${baseUrl}/courses/${courseId}/lessons/`)
             .then((response) => response.json())
             .then((data: string[]) => {
-                const sortedLessons = sortLessons(data);
+                // Filter out lessons starting with '.'
+                const filteredLessons = data.filter((lesson) => !lesson.startsWith("."));
+                const sortedLessons = sortLessons(filteredLessons);
                 setLessons(sortedLessons);
             })
             .catch((error) => console.error("Error fetching lessons:", error));

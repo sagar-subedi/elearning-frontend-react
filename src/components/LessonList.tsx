@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { sortLessons } from "../utils/lessonUtils";
 
@@ -11,6 +11,7 @@ interface LessonListProps {
 export const LessonList: React.FC<LessonListProps> = ({ selectedCourse, onSelectLesson, selectedLesson }) => {
     const baseUrl: string = import.meta.env.VITE_API_BASE_URL as string;
     const [lessons, setLessons] = useState<string[]>([]);
+    const selectedLessonRef = useRef<HTMLButtonElement | null>(null);
 
     useEffect(() => {
         if (selectedCourse) {
@@ -19,11 +20,22 @@ export const LessonList: React.FC<LessonListProps> = ({ selectedCourse, onSelect
                 .then((data: string[]) => {
                     // Filter out lessons starting with '.'
                     const filteredLessons = data.filter((lesson) => !lesson.startsWith("."));
-                    const sortedLessons = sortLessons(filteredLessons);                    setLessons(sortedLessons);
+                    const sortedLessons = sortLessons(filteredLessons);
+                    setLessons(sortedLessons);
                 })
                 .catch((error) => console.error("Error fetching lessons:", error));
         }
     }, [selectedCourse, baseUrl]);
+
+    // Scroll to the selected lesson when it changes or on initial load
+    useEffect(() => {
+        if (selectedLessonRef.current) {
+            selectedLessonRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+            });
+        }
+    }, [selectedLesson, lessons]);
 
     return (
         <div className="w-1/4 p-4 bg-gray-200 h-screen overflow-y-auto">
@@ -35,6 +47,7 @@ export const LessonList: React.FC<LessonListProps> = ({ selectedCourse, onSelect
                 {lessons.map((lesson) => (
                     <li key={lesson} className="mb-2">
                         <button
+                            ref={selectedLesson === lesson ? selectedLessonRef : null}
                             onClick={() => {
                                 localStorage.setItem(`lastLesson-${selectedCourse}`, lesson);
                                 onSelectLesson(lesson);

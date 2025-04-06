@@ -1,13 +1,16 @@
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
 
 interface LessonViewerProps {
     selectedCourse: string | null | undefined;
     selectedLesson: string | null | undefined;
     lessons: string[];
     onSelectLesson: (lesson: string | null) => void;
+    onToggleSideBarState: (isSideBarOpen: boolean) => void;
+    isSidebarOpen: boolean;
 }
 
-export const LessonViewer: React.FC<LessonViewerProps> = ({ selectedCourse, selectedLesson, lessons, onSelectLesson }) => {
+export const LessonViewer: React.FC<LessonViewerProps> = ({ selectedCourse, selectedLesson, lessons, onSelectLesson, onToggleSideBarState, isSidebarOpen }) => {
     const baseUrl: string = import.meta.env.VITE_API_BASE_URL as string;
 
     if (!selectedLesson) {
@@ -26,7 +29,20 @@ export const LessonViewer: React.FC<LessonViewerProps> = ({ selectedCourse, sele
 
     return (
         <div className="flex-1 flex flex-col p-4 h-screen">
-            <h2 className="text-xl font-bold mb-4">Lesson: {selectedLesson.replace(/_/g, " ")}</h2>
+            <div className="flex justify-between mb-2">
+                <h2 className="text-xl font-bold">Lesson: {selectedLesson.replace(/_/g, " ")}</h2>
+                <div className="flex space-x-1 h-10">
+                    <Link to="/" className="h-full content-center text-left px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">
+                        Home
+                    </Link>
+                    <button
+                        className="z-2 px-4 py-2 bg-gray-500 text-white rounded-md md:hidden"
+                        onClick={() => onToggleSideBarState(!isSidebarOpen)}
+                    >
+                    {isSidebarOpen ? "Close" : "Menu"}
+                    </button>
+                </div>
+            </div>
             <iframe
                 src={`${baseUrl}/courses/${selectedCourse}/${selectedLesson}`}
                 className="flex-grow w-full h-full border rounded-lg shadow-md"

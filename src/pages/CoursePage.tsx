@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { LessonList } from "../components/LessonList";
 import { LessonViewer } from "../components/LessonViewer";
 import { useEffect, useState } from "react";

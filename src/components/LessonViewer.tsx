@@ -1,5 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { authFetch } from "../utils/authFetch";
 
 interface LessonViewerProps {
     selectedCourse: string | null | undefined;
@@ -20,6 +22,8 @@ export const LessonViewer: React.FC<LessonViewerProps> = ({
 }) => {
     const baseUrl: string = import.meta.env.VITE_API_BASE_URL as string;
 
+    const [iframeSrc, setIframeSrc] = useState<string | null>(null);
+
     if (!selectedLesson) {
         return <div className="flex-1 flex items-center justify-center">Select a lesson to view content.</div>;
     }
@@ -27,8 +31,46 @@ export const LessonViewer: React.FC<LessonViewerProps> = ({
     let currentIndex = lessons.indexOf(selectedLesson);
     let prevLesson: string | null = currentIndex > 0 ? lessons[currentIndex - 1] : null;
     let nextLesson: string | null = currentIndex < lessons.length - 1 ? lessons[currentIndex + 1] : null;
+    const {logout} = useAuth();
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        if (selectedCourse && selectedLesson) {
+            authFetch(`${baseUrl}/courses/${selectedCourse}/${selectedLesson}`)
+                .then((data) => 
+                    {
+                        if (typeof data === "string") {
+                            // Inject a <base> tag into the HTML content
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(data, "text/html");
+    
+                            // Add or update the <base> tag
+                            let baseTag = doc.querySelector("base");
+                            if (!baseTag) {
+                                baseTag = doc.createElement("base");
+                                doc.head.prepend(baseTag);
+                            }
+                            
+                            // Construct the base URL
+                            const baseHost = new URL(baseUrl).origin; // Get the host/domain from baseUrl
+                            const currentPath = window.location.pathname; // Get the current path
+                            baseTag.href = `${baseHost}${currentPath}/`; // Combine host and path
+
+                            // Serialize the modified HTML back to a string
+                            const modifiedHtml = doc.documentElement.outerHTML;
+    
+                            // Create a Blob URL from the modified HTML
+                            const blob = new Blob([modifiedHtml], { type: "text/html" });
+                            const blobUrl = URL.createObjectURL(blob);
+                            setIframeSrc(blobUrl);
+                        } else {
+                            setError("Unexpected response format");
+                            console.log(error);
+                        }
+                    }
+            )
+                .catch((error) => console.error("Error fetching lesson content:", error));
+        }
         currentIndex = lessons.indexOf(selectedLesson);
         prevLesson = currentIndex > 0 ? lessons[currentIndex - 1] : null;
         nextLesson = currentIndex < lessons.length - 1 ? lessons[currentIndex + 1] : null;
@@ -39,6 +81,7 @@ export const LessonViewer: React.FC<LessonViewerProps> = ({
             <div className="flex justify-between mb-4">
                 <h2 className="text-xl font-bold">Lesson: {selectedLesson.replace(/_/g, " ")}</h2>
                 <div className="flex space-x-4 h-10">
+                    <button onClick={logout} className="h-full flex items-center justify-center px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 hover:scale-105 transition-transform duration-200 shadow-md">Logout</button>
                     {/* Home Button with Icon */}
                     <Link
                         to="/"
@@ -102,7 +145,7 @@ export const LessonViewer: React.FC<LessonViewerProps> = ({
                 </div>
             </div>
             <iframe
-                src={`${baseUrl}/courses/${selectedCourse}/${selectedLesson}`}
+                src={iframeSrc||""}
                 className="flex-grow w-full h-full border rounded-lg shadow-md"
             />
             <div className="mt-4 flex justify-between">

@@ -3,10 +3,13 @@ import { LessonList } from "../components/LessonList";
 import { LessonViewer } from "../components/LessonViewer";
 import { useEffect, useState } from "react";
 import { sortLessons } from "../utils/lessonUtils";
+import { useAuth } from "../context/AuthContext";
+import { authFetch } from "../utils/authFetch";
 
 export const CoursePage: React.FC = () => {
   const baseUrl: string = import.meta.env.VITE_API_BASE_URL as string;
   const { courseId } = useParams<{ courseId: string }>();
+  const { token } = useAuth();
 
   const [selectedLesson, setSelectedLesson] = useState<string | null>(
     localStorage.getItem(`lastLesson-${courseId}`) || null
@@ -15,11 +18,15 @@ export const CoursePage: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true); // State to toggle sidebar
 
   useEffect(() => {
-    if (!courseId) return;
+    if (!courseId || !token) return;
 
-    fetch(`${baseUrl}/courses/${courseId}/lessons/`)
-      .then((response) => response.json())
-      .then((data: string[]) => {
+    authFetch(`${baseUrl}/courses/${courseId}/lessons/`,    )
+    .then((response) => {
+      if (!response.ok) {
+          throw new Error("Unauthorized");
+      }
+      return response;
+  })      .then((data: string[]) => {
         // Filter out lessons starting with '.'
         const filteredLessons = data.filter(
           (lesson) => !lesson.startsWith(".")
@@ -28,7 +35,7 @@ export const CoursePage: React.FC = () => {
         setLessons(sortedLessons);
       })
       .catch((error) => console.error("Error fetching lessons:", error));
-  }, [courseId, baseUrl]);
+  }, [courseId,token, baseUrl]);
 
   return (
     <div className="flex flex-row h-screen">

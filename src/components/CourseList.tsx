@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { authFetch } from "../utils/authFetch";
+import { useAuth } from "../context/AuthContext";
 
 interface Course {
     name: string;
@@ -11,12 +13,13 @@ export const CourseList: React.FC = () => {
     const [courses, setCourses] = useState<Course[]>([]);
     const [searchTerm, setSearchTerm] = useState<string>("");
 
+    const { logout } = useAuth();
+
     // Load favorite courses from localStorage
     useEffect(() => {
         const fetchCourses = async () => {
             try {
-                const response = await fetch(`${baseUrl}/courses/`);
-                const data: string[] = await response.json();
+                const data: string[] = await authFetch(`${baseUrl}/courses/`);
 
                 // Retrieve favorites from localStorage
                 const storedFavorites = JSON.parse(localStorage.getItem("favoriteCourses") || "{}");
@@ -65,7 +68,10 @@ export const CourseList: React.FC = () => {
 
     return (
         <div className="w-full p-4 bg-gray-100 h-screen overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-4">Courses</h2>
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold mb-4">Courses</h2>
+                <button onClick={logout} className="h-full flex items-center justify-center px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 hover:scale-105 transition-transform duration-200 shadow-md">Logout</button>
+            </div>
 
             {/* Search Bar */}
             <input

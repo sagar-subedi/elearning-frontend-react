@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { sortLessons } from "../utils/lessonUtils";
+import { authFetch } from "../utils/authFetch";
 
 interface LessonListProps {
     selectedCourse: string | null | undefined;
@@ -14,8 +15,7 @@ export const LessonList: React.FC<LessonListProps> = ({ selectedCourse, onSelect
 
     useEffect(() => {
         if (selectedCourse) {
-            fetch(`${baseUrl}/courses/${selectedCourse}/lessons/`)
-                .then((response) => response.json())
+            authFetch(`${baseUrl}/courses/${selectedCourse}/lessons/`)
                 .then((data: string[]) => {
                     // Filter out lessons starting with '.'
                     const filteredLessons = data.filter((lesson) => !lesson.startsWith("."));
